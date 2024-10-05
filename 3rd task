@@ -1,0 +1,75 @@
+Here's a step-by-step breakdown of how to implement the required functionality in the medical_data_visualizer.py file according to your instructions:
+
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Step 1: Import the data from medical_examination.csv and assign it to the df variable
+df = pd.read_csv('medical_examination.csv')
+
+# Step 2: Create the overweight column in the df variable
+df['overweight'] = (df['weight'] / (df['height'] / 100) ** 2 > 25).astype(int)
+
+# Step 3: Normalize data by making 0 always good and 1 always bad
+df['cholesterol'] = (df['cholesterol'] > 1).astype(int)
+df['gluc'] = (df['gluc'] > 1).astype(int)
+
+# Step 4: Draw the Categorical Plot in the draw_cat_plot function
+def draw_cat_plot():
+    # Create a DataFrame for the cat plot using pd.melt
+    df_cat = pd.melt(df, id_vars='cardio', value_vars=['cholesterol', 'gluc', 'smoke', 'alco', 'active', 'overweight'])
+    
+    # Group and reformat the data
+    df_cat = df_cat.groupby(['cardio', 'variable', 'value']).size().reset_index(name='total')
+    
+    # Convert the data into long format and create a chart
+    fig = sns.catplot(data=df_cat, x='variable', y='total', hue='value', col='cardio', kind='bar')
+    
+    return fig
+
+# Step 5: Draw the Heat Map in the draw_heat_map function
+def draw_heat_map():
+    # Clean the data in the df_heat variable
+    df_heat = df[(df['height'] >= df['height'].quantile(0.025)) &
+                  (df['height'] <= df['height'].quantile(0.975)) &
+                  (df['weight'] >= df['weight'].quantile(0.025)) &
+                  (df['weight'] <= df['weight'].quantile(0.975))]
+
+    # Calculate the correlation matrix
+    corr = df_heat.corr()
+
+    # Generate a mask for the upper triangle
+    mask = np.triu(np.ones_like(corr, dtype=bool))
+
+    # Set up the matplotlib figure
+    plt.figure(figsize=(10, 8))
+
+    # Plot the correlation matrix
+    sns.heatmap(corr, mask=mask, annot=True, fmt=".1f", cmap='coolwarm', cbar=True, square=True)
+
+# Do not modify the next two lines
+if __name__ == "__main__":
+    draw_cat_plot()
+    draw_heat_map()
+    plt.show()
+
+Explanation of Each Step:
+
+1. Importing Data: The CSV file is read into a DataFrame called df.
+
+
+2. Creating the Overweight Column: A new column is added to classify individuals as overweight based on their BMI.
+
+
+3. Normalizing Cholesterol and Glucose: Both cholesterol and glucose levels are transformed so that values indicating health issues are set to 1.
+
+
+4. Drawing the Categorical Plot: The data is melted to long format and then grouped by 'cardio' to prepare it for plotting. A categorical plot is created using Seaborn's catplot.
+
+
+5. Drawing the Heat Map: The DataFrame is filtered to remove outliers based on height and weight percentiles. A correlation matrix is computed, masked for the upper triangle, and then plotted using a heatmap.
+
+
+
+This structure follows your instructions, and the heatmap will visually represent the correlation among the different medical attributes. Adjust paths or additional parameters as needed.
+
